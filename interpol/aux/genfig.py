@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 #rcParams['text.usetex'] = True
 #plt.style.use('bmh')
 
-BRUTE_X, BRUTE_Y = np.loadtxt(str(dir_path)+"/../data/ln-elecDens-clean.txt", unpack=True)
-X, Y_STEFF = np.loadtxt(str(dir_path)+"/../data/ln-elecDens-clean.txt", unpack=True)
+BRUTE_X, BRUTE_Y = np.loadtxt(dir_path+"/../data/ln-elecDens-clean.txt", unpack=True)
+X, Y_STEFF = np.loadtxt(dir_path+"/../data/ln-elecDens-clean.txt", unpack=True)
 
 plt.plot(BRUTE_X, BRUTE_Y, color='#000000', marker='o',
          label=r'dados')
@@ -17,4 +17,4 @@ plt.xlabel(r'$R/R_{\odot}$', fontsize=20)
 plt.ylabel(r'$\log(N_e/N_A)$', fontsize=20)
 plt.legend(fontsize=14)
 plt.title(r'Interpolation - Solar Electron Density')
-plt.savefig(str(dir_path)+"/../fig/2-steff.png", dpi=300, format='png', bbox_inches="tight")
+plt.savefig(dir_path+"/../fig/2-steff.png", dpi=300, format='png', bbox_inches="tight")

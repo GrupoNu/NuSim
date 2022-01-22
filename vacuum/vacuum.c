@@ -2,7 +2,7 @@
 #include <math.h>
 #include <gsl/gsl_errno.h>      /* Error handling */
 #include <gsl/gsl_matrix.h>     /* Matrix for the Jacobian */
-#include <gsl/gsl_odeiv2.h>     /* Solve ODE's */
+#include <gsl/gsl_odeiv2.h>     /* Solve ODEs */
 
 /* PARAMETERS */
 #define T_INIC  (0.0)
@@ -10,7 +10,7 @@
 #define PASSO   (1e-2)
 #define EPS_ABS (1e-4)
 #define EPS_REL (1e-5)
-#define NUM_IT  ((int) (T_FINAL / PASSO))   /* numero de iteracoes */
+#define NUM_IT  ((int) (T_FINAL / PASSO))   /* number of iterations */
 #define DIM     (4)
 
 /* INITIAL CONDITIONS */
