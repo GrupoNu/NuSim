@@ -2,9 +2,9 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import rcParams
-rcParams['text.usetex'] = True
-plt.style.use('bmh')
+#from matplotlib import rcParams
+#rcParams['text.usetex'] = True
+#plt.style.use('bmh')
 
 BRUTE_X, BRUTE_Y = np.loadtxt('./data-brute.txt', unpack=True)
 X, Y_CUBIC, Y_AKIMA, Y_STEFF = np.loadtxt('./data-interpol.txt', unpack=True)

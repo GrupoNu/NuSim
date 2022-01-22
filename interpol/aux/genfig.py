@@ -3,10 +3,9 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import rcParams
-rcParams['text.usetex'] = True
-plt.style.use('bmh')
-#init_printing()
+#from matplotlib import rcParams
+#rcParams['text.usetex'] = True
+#plt.style.use('bmh')
 
 BRUTE_X, BRUTE_Y = np.loadtxt(str(dir_path)+"/../data/ln-elecDens-clean.txt", unpack=True)
 X, Y_STEFF = np.loadtxt(str(dir_path)+"/../data/ln-elecDens-clean.txt", unpack=True)
