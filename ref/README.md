@@ -1,0 +1,31 @@
+## author: John Bahcall
+
+[http://www.sns.ias.edu/~jnb/](http://www.sns.ias.edu/~jnb/)
+
+## data
+
+[http://www.sns.ias.edu/~jnb/SNdata/sndata.html](http://www.sns.ias.edu/~jnb/SNdata/sndata.html)
+
+-> Solar Models
+
+-----> BS2005
+
+---------> Distribution of electron density in the BS05(OP) standard solar model
+
+### data file
+
+[http://www.sns.ias.edu/~jnb/SNdata/Export/BS2005/nele_bs05op.dat](http://www.sns.ias.edu/~jnb/SNdata/Export/BS2005/nele_bs05op.dat)
+
+## paper
+
+[http://www.sns.ias.edu/~jnb/](http://www.sns.ias.edu/~jnb/)
+
+-> Solar Neutrinos
+
+-----> solar models
+
+---------> Solar Models, Neutrino Experiments, and Helioseismology
+
+### pdf file
+
+[http://www.sns.ias.edu/~jnb/Papers/Preprints/RMP88/paper.pdf](http://www.sns.ias.edu/~jnb/Papers/Preprints/RMP88/paper.pdf)
