@@ -6,10 +6,10 @@
 
 /* PARAMETERS */
 #define T_INIC  (0.0)
-#define T_FINAL (50.0)
+#define T_FINAL (10.0)
 #define PASSO   (1e-2)
-#define EPS_ABS (1e-4)
-#define EPS_REL (1e-5)
+#define EPS_ABS (1e-2)
+#define EPS_REL (1e-3)
 #define NUM_IT  ((int) (T_FINAL / PASSO))   /* number of iterations */
 #define DIM     (4)
 
@@ -26,7 +26,7 @@
 #define DM2     (M22 - M12)
 #define ENERG   (1.0)
 #define G_F     (3.0)
-#define N_E     (0.0)
+#define N_E     (M_E)
 
 /* DEFINITIONS */
 int func(double t, const double y[], double f[], void *params); /* ODE step function */
