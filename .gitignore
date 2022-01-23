@@ -1,0 +1,5 @@
+nusim
+**/*.out
+**/*.log
+**/*.aux
+**/.ccls*
