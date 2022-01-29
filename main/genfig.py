@@ -1,5 +1,6 @@
-import os
-dir_path = os.path.dirname(os.path.realpath(__file__))
+#!/usr/bin/env python3
+
+import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,7 +8,7 @@ import matplotlib.pyplot as plt
 #rcParams['text.usetex'] = True
 #plt.style.use('bmh')
 
-N, T, R1, R2, I1, I2 = np.loadtxt(dir_path+"/../data/output.txt", unpack=True)
+N, T, R1, R2, I1, I2 = np.loadtxt(sys.stdin, unpack=True)
 P_num = R1**2 + I1**2
 
 # vacuum constants
@@ -28,10 +29,10 @@ Delta = np.sqrt( (D - dm2 * np.cos(2*th))**2 + (dm2 * np.sin(2*th))**2 )
 def P_e(t):
     return 1 - sin2THm * np.sin(Delta * t / (4*E))**2
 
-plt.plot(T, P_e(T), label=r'$P_{exato}$')
+plt.plot(T, P_e(T), label=r'$P_{exact}$')
 plt.plot(T, P_num,  label=r'$P_{num}$')
 plt.xlabel(r'$t$', fontsize=20)
 plt.ylabel(r'$P_e(t)$', fontsize=20)
 plt.legend(fontsize=14)
 plt.title(r'Neutrino Oscillations - Interpolation Constant Density, $N_e = e^1$')
-plt.savefig(dir_path+"/../fig/nusim.png", dpi=300, format='png', bbox_inches="tight")
+plt.savefig("./fig/nusim.png", dpi=300, format='png', bbox_inches="tight")

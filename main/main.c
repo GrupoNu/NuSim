@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <gsl/gsl_errno.h>      /* Error handling */
 #include <gsl/gsl_matrix.h>     /* Matrix for the Jacobian */
@@ -7,12 +8,12 @@
 #include <gsl/gsl_deriv.h>      /* Numerical differentiation of N_e */
 
 /* EDO parameters */
-#define T_INIC  (0.0)
-#define T_FINAL (10.0)
+#define T_INIC  (0.02)
+#define T_FINAL (1.0)
 #define PASSO   (1e-2)
 #define EPS_ABS (1e-2)
 #define EPS_REL (1e-3)
-#define NUM_IT  ((int) (T_FINAL / PASSO))   /* number of iterations */
+#define NUM_IT  ((int) ((T_FINAL - T_INIC) / PASSO))    /* number of iterations */
 #define GERAC   (2)             /* number of generations, 2 or 3 */
 #define DIM     (2*GERAC)       /* dimension of the problem */
 #define PARNUM  (2*GERAC*GERAC) /* number of hamiltonian entries */
