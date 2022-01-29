@@ -1,6 +1,3 @@
-/* This is the last example from the following link */
-/* https://www.gnu.org/software/gsl/doc/html/interp.html#d-interpolation-example-programs */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -8,8 +5,8 @@
 #include <gsl/gsl_spline.h>
 
 int main() {
-    size_t i;
-    const size_t N = 9;
+    int i;
+    const int N = 9;
 
     /* this dataset is taken from
      * J. M. Hyman, Accurate Monotonicity preserving cubic interpolation,
@@ -28,11 +25,6 @@ int main() {
     gsl_spline_init(spline_cubic, x, y, N);
     gsl_spline_init(spline_akima, x, y, N);
     gsl_spline_init(spline_steffen, x, y, N);
-
-    for (i = 0; i < N; ++i)
-        printf("%g %g\n", x[i], y[i]);
-
-    printf("\n\n");
 
     for (i = 0; i <= 100; ++i) {
         double xi = (1 - i / 100.0) * x[0] + (i / 100.0) * x[N-1];

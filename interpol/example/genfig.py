@@ -1,4 +1,8 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
+
+import sys
+import os
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,8 +10,8 @@ import matplotlib.pyplot as plt
 #rcParams['text.usetex'] = True
 #plt.style.use('bmh')
 
-BRUTE_X, BRUTE_Y = np.loadtxt('./data-brute.txt', unpack=True)
-X, Y_CUBIC, Y_AKIMA, Y_STEFF = np.loadtxt('./data-interpol.txt', unpack=True)
+BRUTE_X, BRUTE_Y = np.loadtxt('./data.txt', unpack=True)
+X, Y_CUBIC, Y_AKIMA, Y_STEFF = np.loadtxt(sys.stdin, unpack=True)
 
 plt.plot(BRUTE_X, BRUTE_Y, color='#000000', marker='o',
          label=r'dados')
