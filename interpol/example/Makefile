@@ -1,6 +1,6 @@
 PROG=gsl-interpol
 OBJECTS=
-CFLAGS=`pkg-config --cflags gsl` -g -Wall -O3
+CFLAGS=-std=gnu99 -g -Wall -O2 `pkg-config --cflags gsl`
 LDLIBS=`pkg-config --libs gsl`
 CC=gcc
 

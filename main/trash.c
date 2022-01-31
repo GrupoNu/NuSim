@@ -1,3 +1,6 @@
+#include <gsl/gsl_matrix.h>     /* Matrix for the Jacobian */
+#include <gsl/gsl_deriv.h>      /* Numerical differentiation of N_e */
+
 int jac(double t, const double Psi[], double *dfdy, double dfdt[], void *params); /* jacobian of the system */
 
 /* jacobiano: J_{ij} = df_i(t, Psi(t)) / dPsi_j e J_t = df_i/dt */

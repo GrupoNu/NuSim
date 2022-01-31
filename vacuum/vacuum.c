@@ -1,7 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <gsl/gsl_errno.h>      /* Error handling */
-#include <gsl/gsl_matrix.h>     /* Matrix for the Jacobian */
 #include <gsl/gsl_odeiv2.h>     /* Solve ODEs */
 
 /* PARAMETERS */
@@ -30,7 +30,6 @@
 
 /* DEFINITIONS */
 int func(double t, const double y[], double f[], void *params); /* ODE step function */
-int jac(double t, const double y[], double *dfdy, double dfdt[], void *params); /* jacobian */
 
 int main()
 {
@@ -42,8 +41,8 @@ int main()
     /* Ai = */ par[4] =                        0.0                           ;  /* Bi = */ par[5] =           0.0;
     /* Ci = */ par[6] =                        0.0                           ;  /* Di = */ par[7] =           0.0;
 
-    /* initializing system */
-    gsl_odeiv2_system ode_sys = {func, jac, DIM, par};
+    /* initializing system */       /* jac */
+    gsl_odeiv2_system ode_sys = {func, NULL, DIM, par};
     /* driver with RFK45 */
     gsl_odeiv2_driver *driver =
         gsl_odeiv2_driver_alloc_y_new(&ode_sys, gsl_odeiv2_step_rkf45, PASSO, EPS_ABS, EPS_REL);
@@ -83,22 +82,5 @@ int func(double t, const double y[], double f[], void *params) {
             /* Cr               Dr                  Ci              Di */
     f[3] = - par[2] * y[0]  -  par[3] * y[1]  +  par[6] * y[2]  +  par[7] * y[3];
 
-    return GSL_SUCCESS;
-}
-
-/* jacobian: J_{ij} = df_i(t, y(t)) / dy_j */
-int jac(double t, const double y[], double *dfdy, double dfdt[], void *params) {
-    double *par = (double *) params;
-    gsl_matrix_view dfdy_mat = gsl_matrix_view_array(dfdy, DIM, DIM);
-    gsl_matrix *mat = &dfdy_mat.matrix;
-                            /* Ai                                   Bi                              Ar                                  Br */
-    gsl_matrix_set(mat, 0, 0, par[4]); gsl_matrix_set(mat, 0, 1, par[5]); gsl_matrix_set(mat, 0, 2, par[0]); gsl_matrix_set(mat, 0, 3, par[1]);
-                            /* Ci                                   Di                              Cr                                  Dr */
-    gsl_matrix_set(mat, 1, 0, par[6]); gsl_matrix_set(mat, 1, 1, par[7]); gsl_matrix_set(mat, 1, 2, par[2]); gsl_matrix_set(mat, 1, 3, par[3]);
-                            /* Ar                                   Br                              Ai                                  Bi */
-    gsl_matrix_set(mat, 2, 0, par[0]); gsl_matrix_set(mat, 2, 1, par[1]); gsl_matrix_set(mat, 2, 2, par[4]); gsl_matrix_set(mat, 2, 3, par[5]);
-                            /* Cr                                   Dr                              Ci                                  Di */
-    gsl_matrix_set(mat, 3, 0, par[2]); gsl_matrix_set(mat, 3, 1, par[3]); gsl_matrix_set(mat, 3, 2, par[6]); gsl_matrix_set(mat, 3, 3, par[7]);
-    dfdt[0] = 0.0; dfdt[1] = 0.0; dfdt[2] = 0.0; dfdt[3] = 0.0;
     return GSL_SUCCESS;
 }

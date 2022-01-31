@@ -2,10 +2,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <gsl/gsl_errno.h>      /* Error handling */
-#include <gsl/gsl_matrix.h>     /* Matrix for the Jacobian */
 #include <gsl/gsl_odeiv2.h>     /* Solve ODEs */
 #include <gsl/gsl_spline.h>     /* Interpolation of electron density */
-#include <gsl/gsl_deriv.h>      /* Numerical differentiation of N_e */
 
 /* EDO parameters */
 #define T_INIC  (0.02)
