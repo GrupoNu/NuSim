@@ -1,0 +1,12 @@
+Talvez eu tenha que fazer multiplicação de matrizes complexas. Pelo seguinte aviso embaixo (https://www.gnu.org/software/gsl/doc/html/complex.html), provavelmente eu terei que usar o C11, talvez com a flag gnu11.
+
+Native C support for complex numbers was introduced in the C99 standard, and additional functionality was added in C11. When <complex.h> is included in a user’s program prior to gsl_complex.h, GSL uses the new C11 functionality to define the GSL_REAL and GSL_IMAG macros. It does not appear possible to properly define these macros using the C99 standard, and so using a C99 compiler will not define gsl_complex to the native complex type.
+
+Some compilers, such as the gcc 4.8 series implement only a portion of the C11 standard and so they may fail to correctly compile GSL code when a user tries to turn on native complex functionality. A workaround for this issue is to either remove <complex.h> from the include list, or add -DGSL_COMPLEX_LEGACY to the compiler flags, which will use the older struct-based definition of gsl_complex.
+
+/*
+ * If <complex.h> is included, use the C99 complex type.  Otherwise
+ * define a type bit-compatible with C99 complex. The GSL_REAL and GSL_IMAG
+ * macros require C11 functionality also (_Generic)
+ */
+
