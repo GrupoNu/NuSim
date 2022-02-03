@@ -11,8 +11,79 @@
 
 \maketitle
 
-\section{Test}
+\section{Numerical description}
 
-Hello.
+In general:
+$$
+i \dv{\psi}{t} = \H \psi
+\implies
+\dv{}{t}
+\begin{bmatrix}
+\real \\ \imaginary
+\end{bmatrix}
+=
+\begin{bmatrix}
+\H_\imaginary & \H_\real \\
+-\H_\real & \H_\imaginary
+\end{bmatrix}
+\begin{bmatrix}
+\real \\ \imaginary
+\end{bmatrix},
+$$
+where $\psi = \real + i \imaginary = (\real_1 + i \imaginary_1, \ldots, \real_n + i \imaginary_n)$, $\H = \H_\real + i \H_\imaginary$ being $\real, \imaginary, \H_\real, \H_\imaginary$ real.
+
+The original complex system of $n$ equations becomes a real system with $2n$ equations.
+
+In the case of Neutrino Oscillations in matter, our hamiltonian is always of the form:
+$$
+\H = \H^0 + \text{diag}\big(V(L), 0, \ldots, 0\big),
+$$
+where $\H^0$ is constant and $V(L) = \sqrt{2} \, G_F N_e(L)$ is the only parameter that depends on the traveled distance $L$ (time also, because $L = ct = t$). $G_F$ is the Fermi constant and $N_e(L)$ is the solar electron density. The hamiltonian $\H$ is so simple because the only neutrino that interacts with solar matter is the neutrino $\nu_e$ of the electron.
+
+The matrix $\H^0$ is simply given by the sandwich:
+$$
+\H^0 = U \, M \, U^\dagger,
+$$
+where $U$ is the neutrino mixing matrix (it's only a unitary matrix, and it has standard \href{https://en.wikipedia.org/wiki/Pontecorvo%E2%80%93Maki%E2%80%93Nakagawa%E2%80%93Sakata_matrix}{parametrization}),
+and $M$ is the diagonal matrix corresponding to the mass eigenvalues of the neutrinos in vacuum (it can be simplified, making one of its entries zero).
+
+Now, the algorithm is very simple:
+\begin{enumerate}
+
+\item Assume $U, M$ and a table $L \times N_e(L)$ of data as input.
+
+\item Using the following structures of the \href{https://www.gnu.org/software/gsl/doc/html/}{GSL Library}:
+\begin{verbatim} gsl_complex, gsl_matrix_complex, gsl_matrix; \end{verbatim}
+we easily calculate $\H^0 = \H^0_\real + \H^0_\imaginary$ by complex matrix operations and then obtain $\H^0_\real$, $\H^0_\imaginary$ by taking the real and imaginary parts with the C macros:
+\begin{verbatim} GSL_REAL, GSL_IMAG. \end{verbatim}
+
+\item Interpolate $N_e(L)$ using \href{http://www.sns.ias.edu/~jnb/SNdata/sndata.html}{Bahcall's data} and compute $V(L) = \sqrt{2} \, G_F N_e(L)$ for $-R_\odot \leq L \leq R_\odot$, where $R_\odot$ is the solar radius. Here we use the following header and type from GSL:
+\begin{verbatim}
+#include <gsl/gsl_spline.h>
+gsl_interp_steffen,
+\end{verbatim}
+which by the last \href{https://www.gnu.org/software/gsl/doc/html/interp.html#d-interpolation-example-programs}{1D Interpolation Example} seems to be the best spline for the case.
+
+\item Now we simply solve the following ODE numerically and print the results.
+$$
+\dv{}{t}
+\begin{bmatrix}
+\real \\ \imaginary
+\end{bmatrix}
+=
+\begin{bmatrix}
+\H_\imaginary & \H_\real \\
+-\H_\real & \H_\imaginary
+\end{bmatrix}
+\begin{bmatrix}
+\real \\ \imaginary
+\end{bmatrix},
+$$
+where $\H_\real = \H^0_\real + \text{diag}\big(V(L), 0, \ldots, 0\big)$ and $\H_\imaginary = \H^0_\imaginary$. For this we use the header
+\begin{verbatim}
+#include <gsl/gsl_odeiv2.h>.
+\end{verbatim}
+
+\end{enumerate}
 
 \end{document}
