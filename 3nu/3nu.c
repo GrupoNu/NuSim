@@ -51,7 +51,7 @@ typedef struct {
 double D(double t, void *params);   /* sqrt(2) * G_F * N_e, where N_e is the electron density */
 void action(const gsl_matrix_complex *A, const gsl_matrix_complex *B, gsl_matrix_complex *C);
 int func(double t, const double Psi[], double f[], void *params); /* ODE step function */
-int readalloc(double **r, double **logNe);  /* read and alloc data, logNe is "ln(N_e)" */
+int readalloc(double **r, double **logNe, int chunk);  /* read and alloc data, logNe is "ln(N_e)" */
 
 int main() {
     /* indexes for matrices */
@@ -59,7 +59,7 @@ int main() {
 
     /* getting data and resizing properly */
     double *x, *logNe;
-    int N = readalloc(&x, &logNe);
+    int N = readalloc(&x, &logNe, 5000);    /* we have 4726 points of data */
 
     /* initializing gsl structures for interpolation */
     gsl_interp_accel *acc = gsl_interp_accel_alloc();
@@ -76,7 +76,7 @@ int main() {
     MAT(U, 2, 0, U31);          MAT(U, 2, 1, U32);          MAT(U, 2, 2, U33);
 
     /* diagonal matrix for the masses */
-    double d1, d2, d3;  /* the diagonal elements */
+    double d1 = 1, d2 = 2, d3 = 3;  /* the diagonal elements */
     gsl_matrix_complex *M = gsl_matrix_complex_alloc(GERAC, GERAC);
     gsl_matrix_complex_set_zero(M);
     MAT(M, 1, 1, CARTE(d1, 0));
@@ -99,12 +99,14 @@ int main() {
     /* parameters data structure */
     par params = { acc, spline, H0_re, H0_im };
 
-    /* initializing system */
+    /* initializing system */       /* jac : jacobiano nao eh necessario para esse algoritmo  */
+                                    /*  |  */
+                                    /*  v  */
     gsl_odeiv2_system ode_sys = {func, NULL, DIM, &params};
     gsl_odeiv2_driver *driver =
         gsl_odeiv2_driver_alloc_y_new(&ode_sys, gsl_odeiv2_step_rkf45, PASSO, EPS_ABS, EPS_REL);    /* Runge-Kutta-Fehlberg 45 method */
 
-    /* initial conditon */
+    /* initial condition */
     double t = T_INIC;
     double Psi[DIM] = { RE1, RE2, RE3, IM1, IM2, IM3 };
 
@@ -122,7 +124,6 @@ int main() {
         }
         printf("%d %.5e %.5e %.5e %.5e %.5e %.5e %.5e\n", i, t, Psi[0], Psi[1], Psi[2], Psi[3], Psi[4], Psi[5]);
     }
-
                             /*************************/
                             /* FREEING THE RESOURCES */
                             /*************************/
@@ -142,7 +143,7 @@ int main() {
 void action(const gsl_matrix_complex *A, const gsl_matrix_complex *B, gsl_matrix_complex *C) {
     gsl_matrix_complex *A_mult_B = gsl_matrix_complex_alloc(A->size1, B->size2);
     /* zgemm does: C = alpha op(A) op(B) + beta C */
-                                             /* alpha     beta */
+                                           /*  alpha         beta  */
     gsl_blas_zgemm(CblasNoTrans, CblasNoTrans, C_ONE, A, B, C_ZERO, A_mult_B);      /* A_mult_B = A . B */
     gsl_blas_zgemm(CblasNoTrans, CblasConjTrans, C_ONE, A_mult_B, A, C_ZERO, C);    /* C = A . B . A^dagger */
 
@@ -160,7 +161,6 @@ int func(double t, const double Psi[], double f[], void *params) {
     par *param = (par *) params;
     gsl_matrix *H0_re = param->H0_re;
     gsl_matrix *H0_im = param->H0_im;
-
                                 /* notice: the DENSITY TERM always corresponds to R11 = H0re(0, 0) */
 /*             J11                 J12                 J13                   R11                 R12                 R13                DENSITY TERM  */
 f[0] =   H0im(0, 0)*Psi[0] + H0im(0, 1)*Psi[1] + H0im(0, 2)*Psi[2]  +  H0re(0, 0)*Psi[3] + H0re(0, 1)*Psi[4] + H0re(0, 2)*Psi[5]  -  D(t, param)*Psi[3];
@@ -168,7 +168,6 @@ f[0] =   H0im(0, 0)*Psi[0] + H0im(0, 1)*Psi[1] + H0im(0, 2)*Psi[2]  +  H0re(0, 0
 f[1] =   H0im(1, 0)*Psi[0] + H0im(1, 1)*Psi[1] + H0im(1, 2)*Psi[2]  +  H0re(1, 0)*Psi[3] + H0re(1, 1)*Psi[4] + H0re(1, 2)*Psi[5];
 /*             J31                 J32                 J33                   R31                 R32                 R33       */
 f[2] =   H0im(2, 0)*Psi[0] + H0im(2, 1)*Psi[1] + H0im(2, 2)*Psi[2]  +  H0re(2, 0)*Psi[3] + H0re(2, 1)*Psi[4] + H0re(2, 2)*Psi[5];
-
 /*            -R11                -R12                -R13                   J11                 J12                 J13                DENSITY TERM  */
 f[3] = - H0re(0, 0)*Psi[0] - H0re(0, 1)*Psi[1] - H0re(0, 2)*Psi[2]  +  H0im(0, 0)*Psi[3] + H0im(0, 1)*Psi[4] + H0im(0, 2)*Psi[5]  -  D(t, param)*Psi[0];
 /*            -R21                -R22                -R23                   J21                 J22                 J23       */
@@ -176,14 +175,12 @@ f[4] = - H0re(1, 0)*Psi[0] - H0re(1, 1)*Psi[1] - H0re(1, 2)*Psi[2]  +  H0im(1, 0
 /*            -R31                -R32                -R33                   J31                 J32                 J33       */
 f[5] = - H0re(2, 0)*Psi[0] - H0re(2, 1)*Psi[1] - H0re(2, 2)*Psi[2]  +  H0im(2, 0)*Psi[3] + H0im(2, 1)*Psi[4] + H0im(2, 2)*Psi[5];
 
-
     return GSL_SUCCESS;
 }
 
 /* reads data from standard input, storages them in x_ptr and y_ptr and returns N */
-int readalloc(double **x_ptr, double **y_ptr) {
+int readalloc(double **x_ptr, double **y_ptr, int chunk) {
     int i = 0, N = 0;
-    int chunk = 100;
     double *x = (double *) malloc(chunk * sizeof(double));
     double *y = (double *) malloc(chunk * sizeof(double));
 

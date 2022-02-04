@@ -54,7 +54,7 @@ Now, the algorithm is very simple:
 
 \item Using the following structures of the \href{https://www.gnu.org/software/gsl/doc/html/}{GSL Library}:
 \begin{verbatim} gsl_complex, gsl_matrix_complex, gsl_matrix; \end{verbatim}
-we easily calculate $\H^0 = \H^0_\real + \H^0_\imaginary$ by complex matrix operations and then obtain $\H^0_\real$, $\H^0_\imaginary$ by taking the real and imaginary parts with the C macros:
+we easily calculate $\H^0 = \H^0_\real + i\H^0_\imaginary$ by complex matrix operations and then obtain $\H^0_\real$, $\H^0_\imaginary$ by taking the real and imaginary parts with the C macros:
 \begin{verbatim}
 GSL_REAL, GSL_IMAG.     /* require the compiler flag -std=gnu11 */
 \end{verbatim}

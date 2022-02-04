@@ -1,4 +1,4 @@
-PROG=interpol
+PROG=3nu
 OBJECTS=
 CFLAGS=-std=gnu11 -g -Wall -O2 `pkg-config --cflags gsl`
 LDLIBS=`pkg-config --libs gsl`
