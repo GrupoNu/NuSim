@@ -1,6 +1,6 @@
-PROG=3nu
+PROG=main
 OBJECTS=
-CFLAGS=-std=gnu11 -g -Wall -O2 `pkg-config --cflags gsl`
+CFLAGS=-std=gnu99 -g -Wall -O2 `pkg-config --cflags gsl`
 LDLIBS=`pkg-config --libs gsl`
 CC=gcc
 
