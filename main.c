@@ -1,4 +1,4 @@
-#include "mass.h"
+#include "main.h"
 #include "param.h"
 
 int main() {
