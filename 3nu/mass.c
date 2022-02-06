@@ -1,5 +1,14 @@
-#include "main.h"
+#include "mass.h"
 #include "param.h"
+#include <gsl/gsl_eigen.h>
+
+#define TRUE    1
+#define FALSE   0
+#define MASS    TRUE
+
+/* DEFINITIONS */
+void mult_MatrixVec(const gsl_matrix_complex *A, gsl_vector_complex *v, gsl_vector_complex *u);
+void genMatrix_alloc(gsl_matrix **H0r_ptr, gsl_matrix **H0i_ptr, gsl_matrix_complex **h0_ptr);
 
 int main() {
 //d                            /*************************/
@@ -34,7 +43,8 @@ int main() {
     /* matrizes:  H = H0 + diag( D(t), 0, 0 ) */
     /* H0 = H0_re + i H0_im */
     gsl_matrix *H0_re, *H0_im;
-    genMatrix_alloc(&H0_re, &H0_im);
+    gsl_matrix_complex *h0;
+    genMatrix_alloc(&H0_re, &H0_im, &h0);
 
     /* parameters data structure */
     par params = { acc, spline, H0_re, H0_im };
@@ -56,16 +66,63 @@ int main() {
                             /*************************/
 
     int i; double ti;
-    for (i = 0; i <= NUM_IT; i++) {
-        ti = i * PASSO + T_INIC;
-        int status = gsl_odeiv2_driver_apply(driver, &t, ti, Psi);
+    if (MASS == TRUE)
+    {
+        gsl_matrix_complex *H = gsl_matrix_complex_alloc(GERAC, GERAC);
+        gsl_matrix_complex *eigvec = gsl_matrix_complex_alloc(GERAC, GERAC);
+        gsl_vector *eigval = gsl_vector_alloc(GERAC);   /* eigval eh inutil, so ta aqui pq eh preciso dele para o eigvec */
+        gsl_eigen_hermv_workspace *workspc = gsl_eigen_hermv_alloc(GERAC);
 
-        if (status != GSL_SUCCESS) {
-            printf ("Error, return status = %d\n", status);
-            break;
+        gsl_vector_complex *psi_complex = gsl_vector_complex_alloc(GERAC);
+        gsl_vector_complex *phi = gsl_vector_complex_alloc(GERAC);  /* phi is the complex vector (psi_1m, psi_2m, psi_3m) */
+
+        for (i = 0; i <= NUM_IT; i++) {
+            ti = i * PASSO + T_INIC;
+            int status = gsl_odeiv2_driver_apply(driver, &t, ti, Psi);
+
+            if (status != GSL_SUCCESS) {
+                printf ("Error, return status = %d\n", status);
+                break;
+            }
+
+            /* pegando o psi_complex a partir do Psi */
+            for (int j = 0; j < GERAC; j++)
+                gsl_vector_complex_set(psi_complex, i, gsl_complex_rect(Psi[i], Psi[i+GERAC]));
+
+            /* the matrix H is destroyed when calculating its eigenvectors */
+            gsl_matrix_complex_memcpy(H, h0);
+            gsl_matrix_complex_set(H, 0, 0, REAL(H0re(0,0) + D(t, &params)));
+
+            /* obtaining eigensystem */
+            gsl_eigen_hermv(H, eigval, eigvec, workspc);
+            gsl_eigen_hermv_sort(eigval, eigvec, GSL_EIGEN_SORT_VAL_ASC);
+
+            mult_MatrixVec(eigvec, psi_complex, phi);  /* phi = eigvec . psi_complex */
+
+            printf("%d    %.5e    %.5e      %.5e      %.5e      %.5e      %.5e      %.5e\n"  ,
+                     i,     t,   phi_R(0), phi_R(1), phi_R(2), phi_I(0), phi_I(1), phi_I(2) );
         }
-        printf("%d    %.5e    %.5e    %.5e    %.5e    %.5e    %.5e    %.5e\n",
-                 i,     t,   Psi[0], Psi[1], Psi[2], Psi[3], Psi[4], Psi[5] );
+
+        gsl_vector_complex_free(phi); gsl_vector_complex_free(psi_complex);
+        gsl_eigen_hermv_free(workspc);
+        gsl_vector_free(eigval);
+        gsl_matrix_complex_free(eigvec);
+        gsl_matrix_complex_free(H);
+    }
+
+    else
+    {
+        for (i = 0; i <= NUM_IT; i++) {
+            ti = i * PASSO + T_INIC;
+            int status = gsl_odeiv2_driver_apply(driver, &t, ti, Psi);
+
+            if (status != GSL_SUCCESS) {
+                printf ("Error, return status = %d\n", status);
+                break;
+            }
+            printf("%d    %.5e    %.5e    %.5e    %.5e    %.5e    %.5e    %.5e\n",
+                     i,     t,   Psi[0], Psi[1], Psi[2], Psi[3], Psi[4], Psi[5] );
+        }
     }
 
 
@@ -75,6 +132,7 @@ int main() {
 
     /* matrices */
     gsl_matrix_free(H0_re); gsl_matrix_free(H0_im);
+    gsl_matrix_complex_free(h0);
 
     /* interpol */
     gsl_odeiv2_driver_free(driver); gsl_spline_free(spline); gsl_interp_accel_free(acc);
@@ -85,7 +143,7 @@ int main() {
     return 0;
 }
 
-void genMatrix_alloc(gsl_matrix **H0r_ptr, gsl_matrix **H0i_ptr) {
+void genMatrix_alloc(gsl_matrix **H0r_ptr, gsl_matrix **H0i_ptr, gsl_matrix_complex **h0_ptr) {
     /* defining the mixing matrix */
     double th12 = DEG_TO_RAD(THETA12),
            th23, th13, d_CP;
@@ -126,8 +184,8 @@ U31=gsl_complex_add_real(POLAR(-c12*c23*s13,d_CP),s12*s23),  U32=gsl_complex_add
                               MAT(M, 1, 1, REAL(m2/2.0));
                                                            MAT(M, 2, 2, REAL(m3/2.0));
 
-    gsl_matrix_complex *h0 = gsl_matrix_complex_alloc(GERAC, GERAC);
-    action(U, M, h0);   /* h0 = U . M . U^dagger */
+    *h0_ptr = gsl_matrix_complex_alloc(GERAC, GERAC);
+    action(U, M, *h0_ptr);   /* h0 = U . M . U^dagger */
 
     /* h0 = H0_re + i H0_im */
     *H0r_ptr = gsl_matrix_alloc(GERAC, GERAC),
@@ -136,13 +194,12 @@ U31=gsl_complex_add_real(POLAR(-c12*c23*s13,d_CP),s12*s23),  U32=gsl_complex_add
     /* colocando as partes reais e imaginarias */
     for (int i = 0; i < GERAC; i++) {
         for (int j = 0; j < GERAC; j++) {
-            gsl_matrix_set(*H0r_ptr, i, j, GSL_REAL(gsl_matrix_complex_get(h0, i, j)));
-            gsl_matrix_set(*H0i_ptr, i, j, GSL_IMAG(gsl_matrix_complex_get(h0, i, j)));
+            gsl_matrix_set(*H0r_ptr, i, j, GSL_REAL(gsl_matrix_complex_get(*h0_ptr, i, j)));
+            gsl_matrix_set(*H0i_ptr, i, j, GSL_IMAG(gsl_matrix_complex_get(*h0_ptr, i, j)));
         }
     }
 
     /* liberando a memoria das matrizes auxiliares */
-    gsl_matrix_complex_free(h0);
     gsl_matrix_complex_free(M);
     gsl_matrix_complex_free(U);
 }
@@ -184,6 +241,13 @@ void action(const gsl_matrix_complex *A, const gsl_matrix_complex *B, gsl_matrix
     gsl_blas_zgemm(CblasNoTrans, CblasConjTrans, GSL_COMPLEX_ONE, A_mult_B, A, GSL_COMPLEX_ZERO, C);        /* C = A.B.A^dagger */
 
     gsl_matrix_complex_free(A_mult_B);  /* freeing the memory of the auxiliary variable */
+}
+
+/* evaluates u = A v */
+void mult_MatrixVec(const gsl_matrix_complex *A, gsl_vector_complex *x, gsl_vector_complex *y) {
+    /* zgemv does: y = alpha op(A).x + beta y */
+                                /*    alpha                    beta    */
+    gsl_blas_zgemv(CblasNoTrans, GSL_COMPLEX_ONE, A, x, GSL_COMPLEX_ZERO, y);
 }
 
 /* reads data from stdin, storages them in x_ptr and y_ptr and returns number of data */

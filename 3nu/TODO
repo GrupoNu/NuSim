@@ -1,0 +1,30 @@
+Ja escrevi o codigo do que esta dentro das chaves:
+{
+    neutrinos de massa ao inves de interação.
+
+    1. Seja |nu_e>, |nu_mu>, |nu_tau> a base E
+       Seja |nu_1(t)>, |nu_2(t)>, |nu_3(t)> a base B(t)
+
+    2. Queremos obter Psi1m, Psi2m e Psi3m. Eles sao tais que:
+    |nu(t)> = Psi1m(t) |nu_1(t)> + Psi2m(t) |nu_2(t)> + Psi3m(t) |nu_3(t)>
+
+    Basta então escrever |nu(t)> na base B(t).
+
+    3. Seja W(t) a matriz mudança de base de E para B(t), ou seja |nu_i(t)> = W(t) |nu_alpha>.
+    Com isso, temos que a matriz W na base E é dada por:
+            [                               ]
+    W(t) =  [ |nu_1(t)> |nu_2(t)> |nu_3(t)> ]
+            [                               ]
+    Para construir a matriz W, basta então achar os autovetores da hamiltoniana H(t).
+
+    4. Possuindo |nu(t)> na base E, para escrevê-lo na base B(t) basta aplicar W(t) nele.
+
+    Portanto:                      W(t)
+                                    |
+                                    v
+    [ Psi1m(t) ]     [                               ]  [ Psi_e(t)   ]
+    [ Psi2m(t) ]  =  [ |nu_1(t)> |nu_2(t)> |nu_3(t)> ]  [ Psi_mu(t)  ]
+    [ Psi3m(t) ]     [                               ]  [ Psi_tau(t) ]
+}
+
+Falta AJUSTAR a CONDICAO INICIAL para os neutrinos de massa.
