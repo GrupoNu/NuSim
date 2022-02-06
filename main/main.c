@@ -6,7 +6,7 @@
 #include <gsl/gsl_spline.h>     /* Interpolation of electron density */
 
 /* EDO parameters */
-#define T_INIC  (0.02)
+#define T_INIC  (0.0)
 #define T_FINAL (1.0)
 #define PASSO   (1e-2)
 #define EPS_ABS (1e-2)
@@ -23,7 +23,7 @@
 #define IM2     (0.0)
 
 /* CONSTANTS */
-/* from: http://www.nu-fit.org/ */
+/* from: http:www.nu-fit.org/ */
 #define THETA   (M_PI / 6)
 #define M12     (1.0)
 #define M22     (2.0)
@@ -47,6 +47,19 @@ int readalloc(double **r, double **logNe);  /* read and alloc data, logNe is "ln
 
 int main()
 {
+//d                           /*************************/
+//d                           /***     DEBUGGING     ***/
+//d                           /*************************/
+//d
+//d   /* initializing parameters */
+//d   double sin2th = pow(sin(THETA), 2), cos2th = pow(cos(THETA), 2);
+//d   double real[PARNUM];    /* real matrix */
+//d   /* Ar = */ real[0] = (M12*cos2th + M22*sin2th)/(2*ENERG);  /* Br = */ real[1] = (DM2*sin(2*THETA))/(4*ENERG);
+//d   /* Cr = */ real[2] =                      real[1]       ;  /* Dr = */ real[3] = (M12*sin2th + M22*cos2th)/(2*ENERG);
+//d   /* Ai = */ real[4] =                        0.0         ;  /* Bi = */ real[5] =           0.0;
+//d   /* Ci = */ real[6] =                        0.0         ;  /* Di = */ real[7] =           0.0;
+//d   printf("\nmatrix\n\n%.3lf %.3lf\n%.3lf %.3lf\n", real[0], real[1], real[2], real[3]);
+
     double *x, *logNe;
     /* getting data and resizing appropriately */
     int N = readalloc(&x, &logNe);
@@ -73,7 +86,7 @@ int main()
     double Psi[DIM] = { RE1, RE2, IM1, IM2 };
 
     int i; double ti;
-    for (i = 1; i <= NUM_IT; i++) {
+    for (i = 0; i <= NUM_IT; i++) {
         ti = i * PASSO + T_INIC;
         int status = gsl_odeiv2_driver_apply(driver, &t, ti, Psi);
 
@@ -82,7 +95,7 @@ int main()
             break;
         }
 
-        printf("%d %.5e %.5e %.5e %.5e %.5e\n", i, t, Psi[0], Psi[1], Psi[2], Psi[3]);
+        printf("%d  %.5e  %.5e  %.5e  %.5e  %.5e\n", i, t, Psi[0], Psi[1], Psi[2], Psi[3]);
     }
 
     gsl_odeiv2_driver_free(driver);
