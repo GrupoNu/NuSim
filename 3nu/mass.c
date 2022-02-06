@@ -1,28 +1,7 @@
 #include "mass.h"
 #include "param.h"
-#include <gsl/gsl_eigen.h>
-
-#define TRUE    1
-#define FALSE   0
-#define MASS    TRUE
-
-/* DEFINITIONS */
-void mult_MatrixVec(const gsl_matrix_complex *A, gsl_vector_complex *v, gsl_vector_complex *u);
-void genMatrix_alloc(gsl_matrix **H0r_ptr, gsl_matrix **H0i_ptr, gsl_matrix_complex **h0_ptr);
 
 int main() {
-//d                            /*************************/
-//d                            /***     DEBUGGING     ***/
-//d                            /*************************/
-//d
-//d    gsl_matrix *H0_re, *H0_im;
-//d    genMatrix_alloc(&H0_re, &H0_im);
-//d    printf("\nH0_re\n");
-//d    printMatrix(&H0_re);
-//d    puts("\n\nH0_im\n");
-//d    printMatrix(&H0_im);
-//d    gsl_matrix_free(H0_re); gsl_matrix_free(H0_im);
-
 
                             /*************************/
                             /***   READING DATA    ***/
@@ -56,25 +35,37 @@ int main() {
     gsl_odeiv2_driver *driver =
         gsl_odeiv2_driver_alloc_y_new(&ode_sys, gsl_odeiv2_step_rkf45, PASSO, EPS_ABS, EPS_REL);    /* Runge-Kutta-Fehlberg 45 method */
 
+
     /* initial condition */
     double t = T_INIC;
-    double Psi[DIM] = { RE1, RE2, RE3, IM1, IM2, IM3 };
-
-
-                            /*************************/
-                            /***        EDO        ***/
-                            /*************************/
-
     int i; double ti;
-    if (MASS == TRUE)
+
+                            /*************************/
+                            /***      MASS NU      ***/
+                            /*************************/
+
+    /* mass neutrinos */
+    if (NU_TYPE == MASS)
     {
+        /* structure for eigensystem */
         gsl_matrix_complex *H = gsl_matrix_complex_alloc(GERAC, GERAC);
         gsl_matrix_complex *eigvec = gsl_matrix_complex_alloc(GERAC, GERAC);
         gsl_vector *eigval = gsl_vector_alloc(GERAC);   /* eigval eh inutil, so ta aqui pq eh preciso dele para o eigvec */
         gsl_eigen_hermv_workspace *workspc = gsl_eigen_hermv_alloc(GERAC);
+        eigen_problem eig_prob = { &params, h0, H, eigvec, eigval, workspc };
 
-        gsl_vector_complex *psi_complex = gsl_vector_complex_alloc(GERAC);
+        gsl_vector_complex *psi_complex = gsl_vector_complex_alloc(GERAC);  /* psi_complex = (psi_e, psi_mu, psi_tau) */
         gsl_vector_complex *phi = gsl_vector_complex_alloc(GERAC);  /* phi is the complex vector (psi_1m, psi_2m, psi_3m) */
+        gsl_vector_complex_set(phi, 0, gsl_complex_rect(RE1, IM1));
+        gsl_vector_complex_set(phi, 1, gsl_complex_rect(RE2, IM2));
+        gsl_vector_complex_set(phi, 2, gsl_complex_rect(RE3, IM3));
+
+        /* solve the eigensystem a first time to get eigvec matrix */
+        solveEigensys(t, &eig_prob);
+
+        /* change basis to get initial condition in interaction basis */
+        mult_MatrixVec(CblasConjTrans, eigvec, phi, psi_complex);   /* psi_complex = eigvec^dagger . phi */
+        double Psi[DIM] = { psi_R(0), psi_R(1), psi_R(2), psi_I(0), psi_I(1), psi_I(2) };
 
         for (i = 0; i <= NUM_IT; i++) {
             ti = i * PASSO + T_INIC;
@@ -85,24 +76,19 @@ int main() {
                 break;
             }
 
+            /* getting eigvec matrix */
+            solveEigensys(t, &eig_prob);
+
             /* pegando o psi_complex a partir do Psi */
             for (int j = 0; j < GERAC; j++)
-                gsl_vector_complex_set(psi_complex, i, gsl_complex_rect(Psi[i], Psi[i+GERAC]));
-
-            /* the matrix H is destroyed when calculating its eigenvectors */
-            gsl_matrix_complex_memcpy(H, h0);
-            gsl_matrix_complex_set(H, 0, 0, REAL(H0re(0,0) + D(t, &params)));
-
-            /* obtaining eigensystem */
-            gsl_eigen_hermv(H, eigval, eigvec, workspc);
-            gsl_eigen_hermv_sort(eigval, eigvec, GSL_EIGEN_SORT_VAL_ASC);
-
-            mult_MatrixVec(eigvec, psi_complex, phi);  /* phi = eigvec . psi_complex */
+                gsl_vector_complex_set(psi_complex, j, gsl_complex_rect(Psi[j], Psi[j+GERAC]));
+            mult_MatrixVec(CblasNoTrans, eigvec, psi_complex, phi);  /* phi = eigvec . psi_complex */
 
             printf("%d    %.5e    %.5e      %.5e      %.5e      %.5e      %.5e      %.5e\n"  ,
                      i,     t,   phi_R(0), phi_R(1), phi_R(2), phi_I(0), phi_I(1), phi_I(2) );
         }
 
+        /* freeing eigensystem resources */
         gsl_vector_complex_free(phi); gsl_vector_complex_free(psi_complex);
         gsl_eigen_hermv_free(workspc);
         gsl_vector_free(eigval);
@@ -110,8 +96,13 @@ int main() {
         gsl_matrix_complex_free(H);
     }
 
+                            /*************************/
+                            /***      PART NU      ***/
+                            /*************************/
+
     else
     {
+        double Psi[DIM] = { RE1, RE2, RE3, IM1, IM2, IM3 };
         for (i = 0; i <= NUM_IT; i++) {
             ti = i * PASSO + T_INIC;
             int status = gsl_odeiv2_driver_apply(driver, &t, ti, Psi);
@@ -166,9 +157,9 @@ void genMatrix_alloc(gsl_matrix **H0r_ptr, gsl_matrix **H0i_ptr, gsl_matrix_comp
            s13 = sin(th13), c13 = cos(th13);
 
     gsl_complex
-U11=REAL(c12 * c13),                                         U12=REAL(s12 * c13),                                         U13=POLAR(s13, -d_CP),
-U21=gsl_complex_add_real(POLAR(-c12*s23*s13,d_CP),-s12*c23), U22=gsl_complex_add_real(POLAR(-s12*s23*s13,d_CP),c12*c23),  U23=REAL(s23*c13),
-U31=gsl_complex_add_real(POLAR(-c12*c23*s13,d_CP),s12*s23),  U32=gsl_complex_add_real(POLAR(-s12*c23*s13,d_CP),-c12*s23), U33=REAL(c23*c13);
+    U11=REAL(c12 * c13),                        U12=REAL(s12 * c13),                        U13=POLAR(s13,-d_CP),
+    U21=ADD(POLAR(-c12*s23*s13,d_CP),-s12*c23), U22=ADD(POLAR(-s12*s23*s13,d_CP),c12*c23),  U23=REAL(s23*c13),
+    U31=ADD(POLAR(-c12*c23*s13,d_CP),s12*s23),  U32=ADD(POLAR(-s12*c23*s13,d_CP),-c12*s23), U33=REAL(c23*c13);
 
     gsl_matrix_complex *U = gsl_matrix_complex_alloc(GERAC, GERAC);
     MAT(U, 0, 0, U11);  MAT(U, 0, 1, U12);  MAT(U, 0, 2, U13);
@@ -232,6 +223,23 @@ double D(double t, void *params) {
     return M_SQRT2 * G_F * exp(gsl_spline_eval(param->spline, t, param->acc));
 }
 
+/* solves eig_prob depending on t */
+void solveEigensys(double t, eigen_problem *eig_prob) {
+    gsl_matrix *H0_re = eig_prob->params->H0_re;
+    /* the matrix H is destroyed when calculating its eigenvectors */
+    gsl_matrix_complex_memcpy(eig_prob->H, eig_prob->h0);
+    gsl_matrix_complex_set(eig_prob->H, 0, 0, REAL(H0re(0, 0) + D(t, eig_prob->params)));
+    gsl_eigen_hermv(eig_prob->H, eig_prob->eigval, eig_prob->eigvec, eig_prob->workspc);
+    gsl_eigen_hermv_sort(eig_prob->eigval, eig_prob->eigvec, GSL_EIGEN_SORT_VAL_ASC);
+}
+
+/* evaluates u = op(A) v, where op(A) = A, A^t, A^dagger for TransA = CblasNoTrans, CblasTrans, CblasConjTrans */
+void mult_MatrixVec(CBLAS_TRANSPOSE_t TransA, const gsl_matrix_complex *A, gsl_vector_complex *x, gsl_vector_complex *y) {
+    /* zgemv does: y = alpha op(A).x + beta y */
+                                /*    alpha                    beta    */
+    gsl_blas_zgemv(TransA, GSL_COMPLEX_ONE, A, x, GSL_COMPLEX_ZERO, y);
+}
+
 /* evaluates C = A B A^dagger */
 void action(const gsl_matrix_complex *A, const gsl_matrix_complex *B, gsl_matrix_complex *C) {
     gsl_matrix_complex *A_mult_B = gsl_matrix_complex_alloc(A->size1, B->size2);
@@ -241,13 +249,6 @@ void action(const gsl_matrix_complex *A, const gsl_matrix_complex *B, gsl_matrix
     gsl_blas_zgemm(CblasNoTrans, CblasConjTrans, GSL_COMPLEX_ONE, A_mult_B, A, GSL_COMPLEX_ZERO, C);        /* C = A.B.A^dagger */
 
     gsl_matrix_complex_free(A_mult_B);  /* freeing the memory of the auxiliary variable */
-}
-
-/* evaluates u = A v */
-void mult_MatrixVec(const gsl_matrix_complex *A, gsl_vector_complex *x, gsl_vector_complex *y) {
-    /* zgemv does: y = alpha op(A).x + beta y */
-                                /*    alpha                    beta    */
-    gsl_blas_zgemv(CblasNoTrans, GSL_COMPLEX_ONE, A, x, GSL_COMPLEX_ZERO, y);
 }
 
 /* reads data from stdin, storages them in x_ptr and y_ptr and returns number of data */

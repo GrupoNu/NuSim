@@ -1,10 +1,10 @@
 #!/bin/sh
 
-PROG="main"
+PROG="mass"
 PROGDIR="$(dirname "$(realpath $0)")"
 
 make -s clean
 cd "$PROGDIR"
 make -s
-cat "$PROGDIR"/ln-elecDens.txt | "$PROGDIR"/"$PROG" | "$PROGDIR"/genfig.py
+cat "$PROGDIR"/const.txt | "$PROGDIR"/"$PROG" | "$PROGDIR"/genfig.py
 make -s clean

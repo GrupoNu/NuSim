@@ -1,4 +1,5 @@
 /* ajustable */
+#define NU_TYPE (MASS)  /* NU_TYPE = "MASS" ou "PART" */
 #define NUM_NU  (2)     /* number of neutrinos */
 #define T_INIC  (0.0)
 #define T_FINAL (1.0)
@@ -14,9 +15,9 @@
 #define DELTACP     (195.0)
 
 /* precision */
-#define PASSO   (1e-2)
-#define EPS_ABS (1e-2)  /* erro absoluto para a rotina do GSL */
-#define EPS_REL (1e-3)  /* erro relativo para a rotina do GSL */
+#define PASSO   (1e-3)
+#define EPS_ABS (1e-5)  /* erro absoluto para a rotina do GSL */
+#define EPS_REL (1e-5)  /* erro relativo para a rotina do GSL */
 
 /* initial condition */
 #define RE1     (1.0)
