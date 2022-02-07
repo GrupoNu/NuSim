@@ -2,11 +2,7 @@
 
 ### TODO:
 
-Melhorar o código?
 Realmente pegar todos os dados reais do NuFit e corrigir unidades.
 
-* criar função para alocar a estrutura `eigen_problem` no `main.c`.
-
-* criar estrutura para os vetores `psi_complex`, `phi` e função para alocá-los?
-
-* criar função para liberar memória do `eigen_problem` e vetores complexos.
+Aviso: existe diferença entre colocar `m1 = -DM2_21, m2 = 0.0, m3 = DM2_32` e `m1 = 0.0, m2 = DM2_21, m3 = DM2_32`.
+Isso gera gráficos completamente diferentes.
