@@ -88,4 +88,38 @@ where $\H_\real = \H^0_\real + \text{diag}\big(V(L), 0, \ldots, 0\big)$ and $\H_
 
 \end{enumerate}
 
+\section{Neutrinos de massa}
+
+Seja $\s{E}$ a base dos neutrinos de interação $e, \mu, \tau$ e $\s{B}(t)$ a base instantânea dos autoestados de massa $\ket{\nu_1(t)}, \ket{\nu_2(t)}, \ket{\nu_3(t)}$. Seja então $W(t) = [ I ]_{\s{E} \to \s{B}(t)}$ a matriz mudança de base de $\s{E}$ para $\s{B}(t)$. Isto significa que $\ket{\nu_i(t)} = [ I ]_{\s{E} \to \s{B}(t)} \ket{\nu_\alpha}$, para $\alpha = e, \mu, \tau$ e $i = 1, 2, 3$.
+
+Seja ainda
+$$
+\phi(t) =
+\begin{bmatrix}
+\psi_1(t) \\
+\psi_2(t) \\
+\psi_3(t)
+\end{bmatrix},
+$$
+onde $\ket{\nu(t)} = \psi_1(t) \ket{\nu_1(t)} + \psi_2(t) \ket{\nu_2(t)} + \psi_3(t) \ket{\nu_3(t)}$ está escrito na base $\s{B}(t)$.
+
+Denotando por $\Lambda(t) = \text{diag}\Big(\lambda_1(t), \lambda_2(t), \lambda_3(t)\Big)$
+a matriz diagonal que representa a hamiltoniana na base $\s{B}(t)$, temos então que:
+$$
+i \dv{\phi(t)}{t} = \qty[ - i W(t) \dv{W^\dagger(t)}{t} + \Lambda(t) ] \phi(t).
+$$
+Esta é a mesma equação (9) que o Boechat obteve, antes de substituir os termos.
+
+\n
+
+O problema com ela são os termos $W(t), \dv{W^\dagger(t)}{t}$, que dificultam numericamente. A dificuldade que eu acho que torna essa EDO intratável é que a diagonalização do GSL \textbf{não é necessariamente contínua}. Com isso, quero dizer que os autovetores podem diferir por uma constante multiplicativa complexa. Veja os \href{https://www.gnu.org/software/gsl/doc/html/eigen.html#examples}{exemplos do GSL}.
+
+\n
+
+Caminhos:
+\begin{itemize}
+\item Buscar algo mais analítico? A \href{https://en.wikipedia.org/wiki/Pontecorvo%E2%80%93Maki%E2%80%93Nakagawa%E2%80%93Sakata_matrix}{mixing matrix} é muito feia.
+\item O que eu tentei fazer? Resolver a EDO na base de interação e mudar para a base $\s{B}(t)$ a todo instante.
+\end{itemize}
+
 \end{document}
